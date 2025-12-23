@@ -1,5 +1,15 @@
-import { getUsersFromFile, creatingUsersForFile} from "./servicess/usersS.js" 
+import express from "express";
+import agentsRoutes from "./routes/agentsR.js"
 
+const app = express();
+const port = 3003;
 
-await creatingUsersForFile({"name":"yossi"})
-console.log(await getUsersFromFile())
+app.use(express.json());
+
+app.use("/agents", agentsRoutes);
+// app.use("/users")
+// app.use("/reports")
+
+app.listen(port, () => {
+    console.log(`server runing on http://localhost:${port}`);
+})
