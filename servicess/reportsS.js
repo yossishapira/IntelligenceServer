@@ -9,27 +9,21 @@ async function getReportsFromFile() {
     }
 }
 
-async function creatingReportsForFile(newReport) {
-    try {
-        const data = await fs.readFile("./io/reports.json", "utf8");
-        const reports = JSON.parse(data);
-
-        reports.push(newReport);
-
-
-        await fs.writeFile("./io/reports.json", JSON.stringify(reports, null, 2));
-
-        return newReport;
-    } catch (error) {
-        console.error(error);
+async function saveReportsFile(report) {
+   try {
+     await fs.writeFile("./io/agents.json",JSON.stringify(report, null, 2)
+     );
+   } catch (error) {
+    console.error(error);
         return null;
-    }
+   }
 }
+
 
 
 export {
     getReportsFromFile,
-    creatingReportsForFile
+    saveReportsFile
 }
 
 
