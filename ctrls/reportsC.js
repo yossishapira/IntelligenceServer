@@ -1,5 +1,5 @@
-import { getReportsFromFile, saveReportsToFile } from "../servicess/agentsS.js";
-
+import { getReportsFromFile, saveReportsFile } from "../servicess/reportsS.js";
+import { getAgentsFromFile, saveAgentsToFile } from "../servicess/agentsS.js";
 
 const getReports = async (req, res) => {
     try {
@@ -17,12 +17,12 @@ const getReportsById = async (req, res) => {
         const report = reports.find(u => u.id === id);
 
         if (!report) {
-            return res.status(404).json({ error: "Agents not found" });
+            return res.status(404).json({ error: "Reports not found" });
         }
 
         res.json(report);
     } catch (error) {
-        res.status(500).json({ error: "Failed to read agents file" });
+        res.status(500).json({ error: "Failed to read reports file" });
     }
 }
 
@@ -30,7 +30,7 @@ const addReports = async (req, res) => {
     try {
         const { content, agentId } = req.body;
         const agents = await getAgentsFromFile();
-        const id = agentId
+        const id = Number(agentId)
         const agent = agents.find(u => u.id === id);
 
         if (!agent) {
@@ -42,11 +42,11 @@ const addReports = async (req, res) => {
 
         let maxId = 0;
 
-        if (agents.length > 0) {
+        if (reports.length > 0) {
             maxId = 0;
-            for (let i = 0; i < agents.length; i++) {
-                if (agents[i].id > maxId) {
-                    maxId = agents[i].id;
+            for (let i = 0; i < reports.length; i++) {
+                if (reports[i].id > maxId) {
+                    maxId = reports[i].id;
                 }
             }
         }
@@ -58,12 +58,17 @@ const addReports = async (req, res) => {
             agentId: agentId
         };
         reports.push(newReport)
-        await saveReportsToFile(reports)
+        await saveReportsFile(reports)
+        const agentIndex = agents.findIndex(agent => agent.id === id);
+        if (agentIndex === -1) {
+            return res.status(404).json({ error: "Reports not found" });
+        }
 
         res.status(201).json(newReport);
-
+        agents[agentIndex].reportsCount += 1
+        await saveAgentsToFile(agents)
     } catch (error) {
-        res.status(500).json({ error: "Failed to create agent" });
+        res.status(500).json({ error: "Failed to create report" });
     }
 };
 
@@ -72,12 +77,19 @@ const updateReport = async (req, res) => {
         const reports = await getReportsFromFile();
         const id = Number(req.params.id);
         const { content, agentId } = req.body;
-        const reportIndex = agents.findIndex(agent => agent.id === id);
-        if (agentIndex === -1) {
-            return res.status(404).json({ error: "Agent not found" });
+        const agents = await getAgentsFromFile();
+        const idAgent = Number(agentId)
+        const agent = agents.find(u => u.id === idAgent);
+
+        if (!agent) {
+            return res.status(404).json({ error: "Agents not found" });
+        }
+        const reportIndex = reports.findIndex(report => report.id === id);
+        if (reportIndex === -1) {
+            return res.status(404).json({ error: "Report not found" });
         }
 
-
+        const date = new Date()
         reports[reportIndex] = {
             ...reports[reportIndex],
             id: id,
@@ -86,12 +98,12 @@ const updateReport = async (req, res) => {
             agentId: agentId
         };
 
-        await saveReportsToFile(agentss)
+        await saveReportsFile(reports)
 
-        res.status(200).json(agentss[reportIndex]);
+        res.status(200).json(reports[reportIndex]);
 
     } catch (error) {
-        res.status(500).json({ error: "Failed to create agent" });
+        res.status(500).json({ error: "Failed to update reports" });
     }
 };
 
@@ -100,16 +112,22 @@ const deleteReport = async (req, res) => {
     try {
         const reports = await getReportsFromFile();
         const id = Number(req.params.id);
-        const reporttIndex = agents.findIndex(report => reports.id === id);
-        if (reporttIndex === -1) {
+        const reportIndex = reports.findIndex(report => report.id === id);
+        if (reportIndex === -1) {
             return res.status(404).json({ error: "Report not found" });
+        }
+       
+        const agents = await getAgentsFromFile();
+        const agentIndex = agents.findIndex(agent => agent.id === Number(reports[reportIndex].agentId));
+        if (agentIndex === -1) {
+            return res.status(404).json({ error: "Agent not found" });
         }
 
 
-
-        const deletedReport = reports.splice(reporttIndex, 1)[0];
-        await saveAgentsToFile(reports)
-
+        agents[agentIndex].reportsCount -= 1
+        await saveAgentsToFile(agents)
+        const deletedReport = reports.splice(reportIndex, 1)[0];
+        await saveReportsFile(reports)
         res.status(200).json(deletedReport);
 
     } catch (error) {

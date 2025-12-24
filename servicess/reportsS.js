@@ -11,7 +11,7 @@ async function getReportsFromFile() {
 
 async function saveReportsFile(report) {
    try {
-     await fs.writeFile("./io/agents.json",JSON.stringify(report, null, 2)
+     await fs.writeFile("./io/reports.json",JSON.stringify(report, null, 2)
      );
    } catch (error) {
     console.error(error);
