@@ -8,9 +8,9 @@ const port = 3003;
 app.use(express.json());
 app.use("/health",(req, res) => {
     try {
-        res.send({ok: true })
+        res.json({ok: true })
     } catch (error) {
-        res.send({error: false })
+        res.json({error: false })
     }
     })
 app.use("/agents", agentsRoutes);
