@@ -6,7 +6,13 @@ const app = express();
 const port = 3003;
 
 app.use(express.json());
-
+app.use("/health",(req, res) => {
+    try {
+        res.json({ok: true })
+    } catch (error) {
+        res.json({error: false })
+    }
+    })
 app.use("/agents", agentsRoutes);
 // app.use("/users")
 app.use("/reports",reportsRoutes)
